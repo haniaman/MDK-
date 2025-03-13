@@ -904,4 +904,16 @@ pg_basebackup -U postgres -D /path/to/backup -Ft -z -P
 
 ### <a id="literature">Список использованных информационных источников</a>
 
+1. **Онлайн-ресурсы:**
+   - PostgreSQL. (n.d.). *PostgreSQL Documentation*. Retrieved from [https://www.postgresql.org/docs/](https://www.postgresql.org/docs/)
+   - PGdocs. (n.d.). *Введние в представления*. Retrieved from [https://pgdocs.ru/gruber/ch20.html](https://pgdocs.ru/gruber/ch20.html)
+   - Stack Overflow. (n.d.). *PostgreSQL Questions*. Retrieved from [https://stackoverflow.com/questions/tagged/postgresql](https://stackoverflow.com/questions/tagged/postgresql)
+
+2. **Справочные системы:**
+   - Microsoft. (n.d.). *SQL Server Documentation*. Retrieved from [https://docs.microsoft.com/en-us/sql/sql-server/](https://docs.microsoft.com/en-us/sql/sql-server/)
+   - Oracle. (n.d.). *Oracle Database Documentation*. Retrieved from [https://docs.oracle.com/en/database/](https://docs.oracle.com/en/database/)
+
+3. **Методические рекомендации:**
+   - Министерство образования Российской Федерации. (2020). *Методические рекомендации по организации учета успеваемости учащихся в образовательных учреждениях*. Москва: Министерство образования.
+
 [Вернуться к содержанию](#content)
