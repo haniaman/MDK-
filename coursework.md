@@ -680,80 +680,22 @@ CREATE INDEX idx_grades_student_class_subject ON Grades (student_id, class_id, s
 
 #### <a id="project_realization">Реализация проекта в среде конкретной СУБД</a>
 
-Этот раздел курсовой работы описывает практическую реализацию базы данных торговой организации в PostgreSQL. Рассматриваются основные этапы — от создания таблиц и запросов до разработки интерфейса и настройки прав доступа, индексов и резервного копирования.
+Этот раздел курсовой работы описывает практическую реализацию базы данных торговой организации в PostgreSQL. Рассматриваются основные этапы — от создания таблиц и запросов до разработки интерфейса, индексов и резервного копирования.
 
-1. **Создание таблиц**
+1. **Создание таблиц и индексов**
 
 
 ```
--- Создание таблицы Классы
-CREATE TABLE Classes (
-    class_id SERIAL PRIMARY KEY,
-    class_number INT NOT NULL,
-    class_letter VARCHAR(5) NOT NULL,
-    start_year DATE NOT NULL
-);
-
--- Создание таблицы Учителя
-CREATE TABLE Teachers (
-    teacher_id SERIAL PRIMARY KEY,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    second_name VARCHAR(50) NOT NULL
-);
-
--- Создание таблицы Ученики
-CREATE TABLE Students (
-    student_id SERIAL PRIMARY KEY,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    second_name VARCHAR(50) NOT NULL,
-    date_of_birth DATE NOT NULL,
-    class_id INT,
-    CHECK (date_of_birth < CURRENT_DATE),
-    FOREIGN KEY (class_id) REFERENCES Classes(class_id)
-);
-
--- Создание таблицы Предметы
-CREATE TABLE Subjects (
-    subject_id SERIAL PRIMARY KEY,
-    subject_name VARCHAR(50) NOT NULL
-);
-
--- Создание таблицы Учитель_Предмет
-CREATE TABLE Teacher_Subject (
-    teacher_id INT,
-    subject_id INT,
-    PRIMARY KEY (teacher_id, subject_id),
-    FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id),
-    FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id)
-);
-
--- Создание таблицы Оценки
-CREATE TABLE Grades (
-    grade_id SERIAL PRIMARY KEY,
-    student_id INT,
-    class_id INT,
-    subject_id INT,
-    teacher_id INT,
-    grade INT CHECK (grade IN (2, 3, 4, 5)),
-    number_lesson INT NOT NULL,
-    date_lesson DATE NOT NULL,
-    create_date DATE NOT NULL,
-    update_date DATE DEFAULT NULL,
-    FOREIGN KEY (student_id) REFERENCES Students(student_id),
-    FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id),
-    FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id),
-    FOREIGN KEY (class_id) REFERENCES Classes(class_id)
-);
+SQL-код публиковался выше
 ```
 
-2. **Создание запросов**
+2. **Создание представлений и функций**
 
-Для удобства работы, реализовано представление для оценок:
+- **Для удобства работы, реализовано представления для оценок и для классов, которые ведет учитель:**
+- 
 ```
 CREATE OR REPLACE VIEW student_grades AS
-SELECT 
+SELECT
     g.grade_id,
     s.student_id,
     s.first_name AS student_first_name,
@@ -763,19 +705,32 @@ SELECT
     g.create_date,
     c.class_number,
     c.class_letter,
-    g.class_id, 
-    g.subject_id  
-FROM 
+    g.class_id,
+    g.subject_id,
+    g.date_lesson
+FROM
     Grades g
-JOIN 
+JOIN
     Students s ON g.student_id = s.student_id
-JOIN 
+JOIN
     Subjects sub ON g.subject_id = sub.subject_id
-JOIN 
+JOIN
     Classes c ON g.class_id = c.class_id;
 ```
 
-Запросы для управления базой данных и получения информации помогут обеспечить работу торговой организации. Примеры запросов включают:
+```
+CREATE OR REPLACE VIEW Teacher_Classes_View AS
+SELECT 
+    tc.teacher_id,
+    c.class_id,
+    c.class_number,
+    c.class_letter
+FROM 
+    Teacher_Classes tc
+JOIN 
+    Classes c ON tc.class_id = c.class_id;
+
+```
 
 
 - **Функция для добавление оценки:**
@@ -811,73 +766,7 @@ BEGIN
     WHERE grade_id = p_grade_id;
 END;
 $$ LANGUAGE plpgsql;
-```
 
-- **Функция для вывода всех оценок у конкретного ученика по конкретному предмету в классе:**
-
-```
-CREATE OR REPLACE FUNCTION get_student_grades_by_subject(
-    p_student_id INT,
-    p_subject_id INT
-) RETURNS TABLE (
-    grade_id INT,
-    grade INT,
-    create_date DATE
-) AS $$
-DECLARE
-    v_class_id INT;
-BEGIN
-    -- Получаем класс студента
-    SELECT class_id INTO v_class_id
-    FROM Students
-    WHERE student_id = p_student_id;
-
-    -- Возвращаем оценки для студента по заданному предмету в его классе
-    RETURN QUERY
-    SELECT 
-        sg.grade_id,
-        sg.grade,
-        sg.create_date
-    FROM 
-        student_grades sg
-    WHERE 
-        sg.student_id = p_student_id AND
-        sg.subject_id = p_subject_id AND
-        sg.class_id = v_class_id;
-END;
-$$ LANGUAGE plpgsql;
-```
-
-- **Функция для вывода всех оценок у конкретного ученика по конкретному предмету, когда он учился в конкретном классе:**
-
-```
-CREATE OR REPLACE FUNCTION get_student_grades_in_class(
-    p_student_id INT,
-    p_subject_id INT,
-    p_class_number INT,
-    p_class_letter VARCHAR(5)
-) RETURNS TABLE (
-    grade_id INT,
-    grade INT,
-    create_date DATE
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT 
-        sg.grade_id,
-        sg.grade,
-        sg.create_date
-    FROM 
-        student_grades sg
-    JOIN 
-        Classes c ON sg.class_number = c.class_number AND sg.class_letter = c.class_letter
-    WHERE 
-        sg.student_id = p_student_id AND
-        sg.subject_id = p_subject_id AND
-        c.class_number = p_class_number AND
-        c.class_letter = p_class_letter;
-END;
-$$ LANGUAGE plpgsql;
 ```
 
 3. **Разработка интерфейса**
