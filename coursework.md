@@ -588,7 +588,7 @@ PostgreSQL предоставляет богатый функционал для
 - **CHECK-ограничения** — применяются для контроля значений полей в соответствии с установленными правилами. Например, в поле grade вводятся только значения 2, 3, 4 или 5, что соответствует оценочной системе.
 
 ```
-CREATE TABLE Ученики (
+CREATE TABLE Students (
     student_id SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
