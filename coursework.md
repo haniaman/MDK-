@@ -33,7 +33,7 @@
     - [Инфологическая (концептуальная) модель базы данных](#infological_model)
     - [Логическая структура БД](#logical_structure)
     - [Физическая структура базы данных](#physical_structure)
-    - [Реализация проекта в среде конкретной СУБД](#Project_realization)
+    - [Реализация проекта в среде конкретной СУБД](#project_realization)
 3. [Заключение](#Conclusion)
 
 ### <a id="introduction">Введение</a>
@@ -466,7 +466,6 @@ CREATE INDEX idx_grades_teacher_id ON Grades (teacher_id);
 ```
 CREATE INDEX idx_teacher_classes_teacher_id ON Teacher_Classes (teacher_id);
 CREATE INDEX idx_teacher_subject_teacher_id ON Teacher_Subject (teacher_id);
-CREATE INDEX idx_grades_teacher_id ON Grades (teacher_id);
 ```
 
 **Создание индексов, используемых в условиях ORDER BY и GROUP BY:**
@@ -532,8 +531,8 @@ CREATE TABLE Ученики (
 **Другие механизмы управления целостностью:**
 
 - **Триггеры** — PostgreSQL поддерживает триггеры, которые позволяют выполнять дополнительные проверки и операции при добавлении, обновлении или удалении записей. Триггеры могут использоваться для автоматической записи истории изменений или для сложных проверок целостности, когда стандартных ограничений недостаточно.
-- **Индексы** — PostgreSQL автоматически создает индексы для полей, которые заданы как первичные ключи или уникальные. Дополнительно можно добавлять индексы для часто используемых в запросах полей, таких как **Дата_продажи** в таблице **Продажи**. Это улучшает производительность запросов, так как индекс ускоряет поиск и доступ к данным.
-- **Управление транзакциями** — PostgreSQL поддерживает уровни изоляции транзакций, которые позволяют определять правила работы с параллельными запросами. Например, для торговой базы данных это полезно при работе с запасами, когда одновременно выполняются несколько операций продажи и пополнения.
+- **Индексы** — PostgreSQL автоматически создает индексы для полей, которые заданы как первичные ключи или уникальные. Это улучшает производительность запросов, так как индекс ускоряет поиск и доступ к данным.
+- **Управление транзакциями** — PostgreSQL поддерживает уровни изоляции транзакций, которые позволяют определять правила работы с параллельными запросами.
 
 Таким образом, механизмы управления целостностью в PostgreSQL обеспечивают надежную работу базы данных, поддерживая высокую степень согласованности и производительности.
 
@@ -565,16 +564,24 @@ pg_basebackup -U postgres -D /path/to/backup -Ft -z -P
 
 Физическое резервное копирование особенно полезно для больших баз данных и высоконагруженных систем, так как оно позволяет быстрее восстанавливать данные и поддерживать согласованность на уровне файлов.
 
-7. **Примерный SQL-код создания таблиц с физической структурой для PostgreSQL**
+7. **SQL-код создания таблиц с физической структурой для PostgreSQL**
 
 В этом разделе приводится полный пример SQL-кода для создания таблиц, описанных в предыдущих разделах. Каждая таблица строится с учетом требований физической структуры базы данных и с использованием всех механизмов PostgreSQL для оптимизации, поддержки целостности и обеспечения надежности данных.
 
 ```
+-- Создание таблицы Администраторы
+CREATE TABLE Admins (
+    admin_id SERIAL PRIMARY KEY,
+    login VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(50) NOT NULL
+);
+
+
 -- Создание таблицы Классы
 CREATE TABLE Classes (
     class_id SERIAL PRIMARY KEY,
     class_number INT NOT NULL,
-    class_letter VARCHAR(5) NOT NULL,
+    class_letter VARCHAR(5) NOT null,
     start_year DATE NOT NULL
 );
 
@@ -583,7 +590,10 @@ CREATE TABLE Teachers (
     teacher_id SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
-    second_name VARCHAR(50) NOT NULL
+    second_name VARCHAR(50) NOT null,
+    login VARCHAR(50) UNIQUE NOT NULL,
+  password VARCHAR(50) NOT NULL,
+  deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- Создание таблицы Ученики
@@ -594,6 +604,9 @@ CREATE TABLE Students (
     second_name VARCHAR(50) NOT NULL,
     date_of_birth DATE NOT NULL,
     class_id INT,
+    history_classes VARCHAR(8000) DEFAULT NULL,
+    login VARCHAR(50) UNIQUE NOT NULL,
+  password VARCHAR(50) NOT NULL,
     CHECK (date_of_birth < CURRENT_DATE),
     FOREIGN KEY (class_id) REFERENCES Classes(class_id)
 );
@@ -607,10 +620,21 @@ CREATE TABLE Subjects (
 -- Создание таблицы Учитель_Предмет
 CREATE TABLE Teacher_Subject (
     teacher_id INT,
-    subject_id INT PRIMARY KEY (teacher_id, subject_id),
+    subject_id INT,
+    PRIMARY KEY (teacher_id, subject_id),
     FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id),
     FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id)
 );
+
+-- Создание таблицы Учитель_Класс
+CREATE TABLE Teacher_Classes (
+    teacher_id INT,
+    class_id INT,
+    PRIMARY KEY (teacher_id, class_id),
+    FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id),
+    FOREIGN KEY (class_id) REFERENCES Classes(class_id)
+);
+
 
 -- Создание таблицы Оценки
 CREATE TABLE Grades (
@@ -622,33 +646,39 @@ CREATE TABLE Grades (
     grade INT CHECK (grade IN (2, 3, 4, 5)),
     number_lesson INT NOT NULL,
     date_lesson DATE NOT NULL,
-    create_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    update_date DATE DEFAULT NULL,
+    create_date DATE NOT NULL,
+    update_date DATE default null,
     FOREIGN KEY (student_id) REFERENCES Students(student_id),
     FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id),
     FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id),
     FOREIGN KEY (class_id) REFERENCES Classes(class_id)
 );
 
+
 -- Индексы для оптимизации запросов
-CREATE INDEX idx_students_class ON Students (class_id);
-CREATE INDEX idx_grades_student ON Grades (student_id);
-CREATE INDEX idx_grades_subject ON Grades (subject_id);
-CREATE INDEX idx_grades_teacher ON Grades (teacher_id);
-CREATE INDEX idx_grades_class ON Grades (class_id);
-CREATE INDEX idx_teacher_subject ON Teacher_Subject (teacher_id, subject_id);
+CREATE INDEX idx_students_login ON Students (login);
+CREATE INDEX idx_teachers_login ON Teachers (login);
+CREATE INDEX idx_classes_class_number_letter ON Classes (class_number, class_letter);
+CREATE INDEX idx_grades_student_id ON Grades (student_id);
+CREATE INDEX idx_grades_class_id ON Grades (class_id);
+CREATE INDEX idx_grades_subject_id ON Grades (subject_id);
+CREATE INDEX idx_grades_teacher_id ON Grades (teacher_id);
+CREATE INDEX idx_teacher_classes_teacher_id ON Teacher_Classes (teacher_id);
+CREATE INDEX idx_teacher_subject_teacher_id ON Teacher_Subject (teacher_id);
+CREATE INDEX idx_grades_date_lesson ON Grades (date_lesson);
+CREATE INDEX idx_grades_student_class_subject ON Grades (student_id, class_id, subject_id);
 ```
 
 **Описание и обоснование SQL-кода**
 
 - **Создание таблиц:** Каждая таблица создается с использованием типа SERIAL для первичного ключа, который обеспечивает автоинкремент и уникальность записи. Поля, содержащие важные текстовые данные, используются с типом VARCHAR, а для целочисленных значений и дат применяется тип INT и DATE соответственно.
 - **Ограничения целостности:** В таблицах установлены внешние ключи для обеспечения ссылочной целостности. Например, class_id в таблице Students ссылается на таблицу Classes, что гарантирует, что каждый ученик будет принадлежать к существующему классу.
-- **Индексы:** Добавлены индексы для полей, которые часто участвуют в запросах. Например, idx_students_class для ускорения фильтрации и поиска учеников по классу, а также индексы для таблицы Grades, чтобы ускорить выборки по студентам, предметам, учителям и классам.
+- **Индексы:** Добавлены индексы для полей, которые часто участвуют в запросах.
 - **CHECK-ограничения:** Дополнительные ограничения установлены на такие поля, как grade, чтобы защитить базу данных от некорректных значений и обеспечить соответствие данных бизнес-логике.
 
 Этот SQL-код и структура таблиц обеспечивают надежную физическую реализацию базы данных в PostgreSQL для образовательной организации, удовлетворяя всем требованиям по целостности, производительности и масштабируемости.
 
-#### <a id="Project_realization">Реализация проекта в среде конкретной СУБД</a>
+#### <a id="project_realization">Реализация проекта в среде конкретной СУБД</a>
 
 Этот раздел курсовой работы описывает практическую реализацию базы данных торговой организации в PostgreSQL. Рассматриваются основные этапы — от создания таблиц и запросов до разработки интерфейса и настройки прав доступа, индексов и резервного копирования.
 
