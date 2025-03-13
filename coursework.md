@@ -449,15 +449,31 @@ CREATE TABLE Grades (
 - **Внешние ключи** (например, student_id, class_id, subject_id, teacher_id) также индексируются, чтобы ускорить выполнение соединений между таблицами. Внешние ключи позволяют поддерживать целостность данных, предотвращая создание записей, не соответствующих связанным данным.
 - **Дополнительные индексы** — могут быть добавлены для часто запрашиваемых полей, например, для поля lesson_date в таблице Оценки, если предполагается, что пользователи часто будут искать оценки по дате.
 
-**Создание индексов:**
+**Создание индексов, используемых в условиях WHERE:**
 
 ```
-CREATE INDEX idx_students_class ON Students (class_id);
-CREATE INDEX idx_grades_student ON Grades (student_id);
-CREATE INDEX idx_grades_subject ON Grades (subject_id);
-CREATE INDEX idx_grades_teacher ON Grades (teacher_id);
-CREATE INDEX idx_grades_class ON Grades (class_id);
-CREATE INDEX idx_teacher_subject ON Teacher_Subject (teacher_id, subject_id);
+CREATE INDEX idx_students_login ON Students (login);
+CREATE INDEX idx_teachers_login ON Teachers (login);
+CREATE INDEX idx_classes_class_number_letter ON Classes (class_number, class_letter);
+CREATE INDEX idx_grades_student_id ON Grades (student_id);
+CREATE INDEX idx_grades_class_id ON Grades (class_id);
+CREATE INDEX idx_grades_subject_id ON Grades (subject_id);
+CREATE INDEX idx_grades_teacher_id ON Grades (teacher_id);
+```
+
+**Создание индексов, используемых в условиях JOIN:**
+
+```
+CREATE INDEX idx_teacher_classes_teacher_id ON Teacher_Classes (teacher_id);
+CREATE INDEX idx_teacher_subject_teacher_id ON Teacher_Subject (teacher_id);
+CREATE INDEX idx_grades_teacher_id ON Grades (teacher_id);
+```
+
+**Создание индексов, используемых в условиях ORDER BY и GROUP BY:**
+
+```
+CREATE INDEX idx_grades_date_lesson ON Grades (date_lesson);
+CREATE INDEX idx_grades_student_class_subject ON Grades (student_id, class_id, subject_id);
 ```
 
 **Преимущества индексов:**
@@ -465,6 +481,9 @@ CREATE INDEX idx_teacher_subject ON Teacher_Subject (teacher_id, subject_id);
 - Ускоряют поиск и сортировку.
 - Повышают производительность запросов с условиями фильтрации.
 - Уменьшают время выполнения операций соединения.
+
+**Недостаток индексов:**
+- Индексы занимают место и могут замедлить операции вставки, обновления и удаления, так как индексы также нужно обновлять.
 
 3. **Таблицы и кластеризация данных**
 
