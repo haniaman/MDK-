@@ -1705,6 +1705,7 @@ class DatabaseApp:
     def logout(self):
         self.user_type = None
         self.student_id = None
+        self.teacher_id = None 
         self.create_login_interface()
 
     def clear_frame(self):
