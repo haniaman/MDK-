@@ -907,13 +907,15 @@ pg_basebackup -U postgres -D /path/to/backup -Ft -z -P
 1. **Онлайн-ресурсы:**
    - PostgreSQL. (n.d.). *PostgreSQL Documentation*. Retrieved from [https://www.postgresql.org/docs/](https://www.postgresql.org/docs/)
    - PGdocs. (n.d.). *Введние в представления*. Retrieved from [https://pgdocs.ru/gruber/ch20.html](https://pgdocs.ru/gruber/ch20.html)
-   - Stack Overflow. (n.d.). *PostgreSQL Questions*. Retrieved from [https://stackoverflow.com/questions/tagged/postgresql](https://stackoverflow.com/questions/tagged/postgresql)
+   - Хабр. (n.d.). *Индексы в PostgreSQL*. Retrieved from [https://habr.com/ru/companies/postgrespro/articles/326096/](https://habr.com/ru/companies/postgrespro/articles/326096/)
+   - SQL-Ex blog. (n.d.). *Функции PostgreSQL: сила функций пользователя*. Retrieved from [https://sql-ex.com/blogs/?/Funkcii_PostgreSQL_sila_funkcij_polzovatelJa.html](https://sql-ex.com/blogs/?/Funkcii_PostgreSQL_sila_funkcij_polzovatelJa.html)
 
 2. **Справочные системы:**
-   - Microsoft. (n.d.). *SQL Server Documentation*. Retrieved from [https://docs.microsoft.com/en-us/sql/sql-server/](https://docs.microsoft.com/en-us/sql/sql-server/)
-   - Oracle. (n.d.). *Oracle Database Documentation*. Retrieved from [https://docs.oracle.com/en/database/](https://docs.oracle.com/en/database/)
+   - DBeaver. (n.d.). *DBeaver Documentation*. Retrieved from [https://dbeaver.com/docs/dbeaver/](https://dbeaver.com/docs/dbeaver/)
+   - docs.python.org. (n.d.). *tkinter Documentation*. Retrieved from [https://docs.python.org/3/library/tkinter.html](https://docs.python.org/3/library/tkinter.html)
+   - Psycopg. (n.d.). *Psycopg – PostgreSQL database adapter for Python*. Retrieved from [https://www.psycopg.org/docs/](https://www.psycopg.org/docs/)
 
-3. **Методические рекомендации:**
-   - Министерство образования Российской Федерации. (2020). *Методические рекомендации по организации учета успеваемости учащихся в образовательных учреждениях*. Москва: Министерство образования.
+### <a id="applications">Приложения</a>
+
 
 [Вернуться к содержанию](#content)
